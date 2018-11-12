@@ -1,4 +1,4 @@
 # Flutter Stock App
 
-![App](video.gif)
+<img src="video.gif" width="224" height="480" />
 
