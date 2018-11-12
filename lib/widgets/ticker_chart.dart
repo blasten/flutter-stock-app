@@ -3,13 +3,6 @@ import 'package:charts_flutter/flutter.dart' as charts;
 
 import '../store/models.dart';
 
-class PricePoint {
-  final DateTime time;
-  final int price;
-
-  PricePoint(this.time, this.price);
-}
-
 class TickerChart extends StatelessWidget {
   const TickerChart({
     Key key,
