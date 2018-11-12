@@ -3,23 +3,25 @@ import 'package:flutter/material.dart';
 class TickerAppBar extends StatefulWidget implements PreferredSizeWidget {
   const TickerAppBar({
     Key key,
-    this.onSearchQueryChanged,
+    this.onSearchInputFocusChanged,
     this.iconTheme,
     this.textTheme,
     this.textInputController,
-  })  : primary = true,
+  })  : assert(onSearchInputFocusChanged != null),
+        assert(textInputController != null),
+        primary = true,
         preferredSize = const Size.fromHeight(kToolbarHeight),
         super(key: key);
 
-  final void Function(String query) onSearchQueryChanged;
+  final void Function(bool focused) onSearchInputFocusChanged;
+
+  final TextEditingController textInputController;
 
   final bool primary;
 
   final IconThemeData iconTheme;
 
   final TextTheme textTheme;
-
-  final TextEditingController textInputController;
 
   @override
   final Size preferredSize;
@@ -39,6 +41,8 @@ class _TickerAppState extends State<TickerAppBar>
   // Animation for the icon color of the text input.
   Animation<Color> _inputIconColorTween;
 
+  FocusNode _searchInputFocusNode;
+
   @override
   initState() {
     super.initState();
@@ -56,14 +60,18 @@ class _TickerAppState extends State<TickerAppBar>
             setState(() {});
           });
 
-    _inputIconColorTween =
-        ColorTween(begin: Colors.white.withOpacity(0.3), end: Colors.grey[500])
-            .animate(_animationController)
-              ..addListener(() {
-                setState(() {});
-              });
+    _inputIconColorTween = ColorTween(
+      begin: Colors.white.withOpacity(0.3),
+      end: Colors.grey[500],
+    ).animate(_animationController)
+      ..addListener(() {
+        setState(() {});
+      });
 
-    widget.textInputController?.addListener(onTextInputValueChanged);
+    widget.textInputController?.addListener(_onTextInputValueChanged);
+
+    _searchInputFocusNode = FocusNode();
+    _searchInputFocusNode.addListener(_onSearchFocusNodeChanged);
   }
 
   @override
@@ -71,10 +79,15 @@ class _TickerAppState extends State<TickerAppBar>
     super.dispose();
 
     _animationController?.dispose();
-    widget.textInputController?.removeListener(onTextInputValueChanged);
+    _searchInputFocusNode?.removeListener(_onSearchFocusNodeChanged);
+    widget.textInputController?.removeListener(_onTextInputValueChanged);
   }
 
-  onTextInputValueChanged() {
+  _onSearchFocusNodeChanged() {
+    widget.onSearchInputFocusChanged(_searchInputFocusNode.hasFocus);
+  }
+
+  _onTextInputValueChanged() {
     if (widget.textInputController == null) {
       return;
     }
@@ -84,7 +97,6 @@ class _TickerAppState extends State<TickerAppBar>
     } else {
       _animationController.reverse();
     }
-    widget.onSearchQueryChanged(text);
   }
 
   @override
@@ -110,25 +122,28 @@ class _TickerAppState extends State<TickerAppBar>
                   ]),
               child: Center(
                 child: TextField(
+                  focusNode: _searchInputFocusNode,
                   controller: widget.textInputController,
                   style: TextStyle(
                     fontSize: 18.0,
                     color: Colors.black,
                   ),
                   decoration: InputDecoration(
-                      icon: Container(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: Icon(
-                            IconData(
-                              0xe8b6,
-                              fontFamily: 'MaterialIcons',
-                            ),
-                            color: _inputIconColorTween?.value,
-                          )),
-                      border: InputBorder.none,
-                      hintText: 'Type a company name',
-                      hintStyle:
-                          TextStyle(color: Colors.white.withOpacity(0.8))),
+                    icon: Container(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Icon(
+                          IconData(
+                            0xe8b6,
+                            fontFamily: 'MaterialIcons',
+                          ),
+                          color: _inputIconColorTween?.value,
+                        )),
+                    border: InputBorder.none,
+                    hintText: 'Type a company name',
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
                 ),
               ),
             ),

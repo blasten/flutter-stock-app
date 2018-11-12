@@ -152,11 +152,16 @@ class _InnerContent extends StatelessWidget {
               ),
               color: priceColor,
             ),
-            Text(
-              '${_numberFormatter.format(priceDelta)} (${_numberFormatter.format(percentageDelta)}%)',
-              style: TextStyle(
-                color: priceColor,
-                fontSize: 18.0,
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '${_numberFormatter.format(priceDelta)} (${_numberFormatter.format(percentageDelta)}%)',
+                  style: TextStyle(
+                    color: priceColor,
+                    fontSize: 18.0,
+                  ),
+                ),
               ),
             ),
           ],

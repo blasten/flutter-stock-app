@@ -26,76 +26,92 @@ class _TickerAppShell extends State<TickerAppShell>
 
   bool _userIsSearching = false;
 
+  bool _searchTextInputFocus = false;
+
   @override
   initState() {
     super.initState();
 
     _textInputController = TextEditingController();
+    _textInputController.addListener(_searchTextInputHandler);
+  }
+
+  @override
+  dispose() {
+    _textInputController?.removeListener(_searchTextInputHandler);
+    super.dispose();
+  }
+
+  _searchTextInputHandler() {
+    setState(() {
+      _userIsSearching = _textInputController.text.isNotEmpty;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomLeft,
-            colors: [
-              Colors.grey[600],
-              Colors.black,
-            ],
-          ),
+    final bool userIsSearching = _userIsSearching || _searchTextInputFocus;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomLeft,
+          colors: [
+            Colors.grey[600],
+            Colors.black,
+          ],
         ),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: TickerAppBar(
-              onSearchQueryChanged: (String query) {
-                setState(() {
-                  _userIsSearching = query.isNotEmpty;
-                });
-              },
-              textInputController: _textInputController),
-          body: Stack(
-            children: <Widget>[
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  AnimatedContainer(
-                    transform: Matrix4.translationValues(
-                      0.0,
-                      _userIsSearching ? 400.0 : 0.0,
-                      0.0,
-                    ),
-                    duration: animationDuration,
-                    curve: Curves.easeInOut,
-                    child: AnimatedOpacity(
-                      opacity: _userIsSearching ? 0.0 : 1.0,
-                      duration: animationDuration,
-                      curve: Curves.easeInOut,
-                      child: TickerBottomCarousel(),
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                left: 0.0,
-                right: 0.0,
-                top: 0.0,
-                bottom: 0.0,
-                child: IgnorePointer(
-                  ignoring: !_userIsSearching,
-                  child: AnimatedOpacity(
-                      opacity: _userIsSearching ? 1.0 : 0.0,
-                      duration: animationDuration,
-                      curve: Curves.easeIn,
-                      child: TickerSearchResults(
-                        textInputController: _textInputController,
-                      )),
+      ),
+      child: Scaffold(
+        resizeToAvoidBottomPadding : false,
+        backgroundColor: Colors.transparent,
+        appBar: TickerAppBar(
+          onSearchInputFocusChanged: (bool focus) {
+            setState(() {
+              _searchTextInputFocus = focus;
+            });
+          },
+          textInputController: _textInputController,
+        ),
+        body: Stack(
+          children: <Widget>[
+            Positioned(
+              left: 0.0,
+              right: 0.0,
+              bottom: 0.0,
+              child: AnimatedContainer(
+                transform: Matrix4.translationValues(
+                  0.0,
+                  userIsSearching ? 400.0 : 0.0,
+                  0.0,
                 ),
-              )
-            ],
-          ),
+                duration: animationDuration,
+                curve: Curves.easeInOut,
+                child: AnimatedOpacity(
+                  opacity: userIsSearching ? 0.0 : 1.0,
+                  duration: animationDuration,
+                  curve: Curves.easeInOut,
+                  child: TickerBottomCarousel(),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0.0,
+              right: 0.0,
+              top: 0.0,
+              bottom: 0.0,
+              child: IgnorePointer(
+                ignoring: !userIsSearching,
+                child: AnimatedOpacity(
+                    opacity: userIsSearching ? 1.0 : 0.0,
+                    duration: animationDuration,
+                    curve: Curves.easeIn,
+                    child: TickerSearchResults(
+                      textInputController: _textInputController,
+                    )),
+              ),
+            )
+          ],
         ),
       ),
     );

@@ -34,36 +34,47 @@ class _TickerSearchResults extends State<TickerSearchResults> {
           builder: (SearchableSymbolsStore searchableSymbols) {
             final searchableQuery =
                 widget.textInputController.text.toLowerCase();
-            _lastResults = searchableQuery.isEmpty
-                ? _lastResults
+            final List<SearchableSymbol> results = searchableQuery.isEmpty
+                ? []
                 : searchableSymbols.symbols
                     .where((item) => item.match(searchableQuery))
                     .toList();
+            final currentResults =
+                searchableQuery.isEmpty ? _lastResults : results;
 
-            return ListView.builder(
-              primary: true,
-              itemCount: _lastResults.length,
-              itemExtent: 65.0,
-              itemBuilder: (BuildContext context, int index) {
-                final item = _lastResults[index];
-                return _TickerSearchResultItem(
-                  key: Key('result_item' + item.symbol),
-                  companyName: item.companyName,
-                  symbol: item.symbol,
-                  onTap: () {
-                    widget.textInputController.clear();
-                    // (flutter/issues/7247) Hide the keyboard.
-                    FocusScope.of(context).requestFocus(FocusNode());
+            _lastResults = results;
 
-                    // Add the symbol to the user list.
-                    userSymbols.addUserSymbol(SymbolDetail(
-                      symbol: item.symbol,
-                      companyName: item.companyName,
-                    ));
-                  },
-                );
-              },
-            );
+            return GestureDetector(
+                onTap: () {
+                  // Unfocus the search input.
+                  FocusScope.of(context).requestFocus(FocusNode());
+                },
+                child: SizedBox.expand(
+                  child: ListView.builder(
+                    primary: true,
+                    itemCount: currentResults.length,
+                    itemExtent: 65.0,
+                    itemBuilder: (BuildContext context, int index) {
+                      final item = currentResults[index];
+                      return _TickerSearchResultItem(
+                        key: Key('result_item' + item.symbol),
+                        companyName: item.companyName,
+                        symbol: item.symbol,
+                        onTap: () {
+                          widget.textInputController.clear();
+                          // (flutter/issues/7247) Hide the keyboard.
+                          FocusScope.of(context).requestFocus(FocusNode());
+
+                          // Add the symbol to the user list.
+                          userSymbols.addUserSymbol(SymbolDetail(
+                            symbol: item.symbol,
+                            companyName: item.companyName,
+                          ));
+                        },
+                      );
+                    },
+                  ),
+                ));
           },
         );
       },
